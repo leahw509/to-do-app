@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useTodos } from "@/context/TodoContext"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import {
   Table,
   TableBody,
@@ -19,9 +19,13 @@ export default function Home() {
     <section className="flex w-full max-w-lg flex-col gap-4">
       <div className="flex items-center justify-between border-b pb-3">
         <h1 className="text-lg font-semibold">Todo List</h1>
-        <Button size="sm" render={<Link href="/add-task" />}>
+
+        <Link
+          href="/add-task"
+          className={buttonVariants({ size: "sm" })}
+        >
           Add Task
-        </Button>
+        </Link>
       </div>
 
       <Table>
@@ -51,17 +55,31 @@ export default function Home() {
                 <input
                   type="checkbox"
                   checked={todo.completed}
-                  onChange={e => toggleTodo(todo.id, e.target.checked)}
+                  onChange={e =>
+                    toggleTodo(todo.id, e.target.checked)
+                  }
                   className="h-4 w-4 cursor-pointer accent-primary"
                 />
               </TableCell>
 
-              <TableCell
-                className={
-                  todo.completed ? "text-muted-foreground line-through" : ""
-                }
-              >
-                {todo.title}
+              <TableCell>
+                <div
+                  className={
+                    todo.completed
+                      ? "text-muted-foreground line-through"
+                      : ""
+                  }
+                >
+                  <div className="font-medium">
+                    {todo.title}
+                  </div>
+
+                  {todo.description && (
+                    <div className="text-sm text-muted-foreground">
+                      {todo.description}
+                    </div>
+                  )}
+                </div>
               </TableCell>
 
               <TableCell className="text-right">

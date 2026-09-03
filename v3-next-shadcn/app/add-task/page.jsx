@@ -1,51 +1,102 @@
 "use client"
 
-import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { Controller, useForm } from "react-hook-form"
+
 import { useTodos } from "@/context/TodoContext"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import {
+  Field,
+  FieldError,
+  FieldLabel,
+} from "@/components/ui/field"
 
 export default function AddTask() {
-  const [title, setTitle] = useState("")
   const { addTodo } = useTodos()
   const router = useRouter()
 
-  function handleSubmit(e) {
-    e.preventDefault()
-    if (title.trim() === "") return
+  const {
+    control,
+    handleSubmit,
+  } = useForm({
+    defaultValues: {
+      title: "",
+      description: "",
+    },
+  })
 
-    addTodo(title.trim())
+  function onSubmit(data) {
+    addTodo(data.title.trim(), data.description.trim())
     router.push("/")
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex w-full max-w-lg flex-col gap-5">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="flex w-full max-w-lg flex-col gap-5"
+    >
       <h1 className="text-lg font-semibold">New Task</h1>
 
-      <div className="flex flex-col gap-2">
-        <label
-          htmlFor="item"
-          className="text-xs uppercase tracking-widest text-muted-foreground"
-        >
-          Task
-        </label>
-        <Input
-          id="item"
-          type="text"
-          value={title}
-          onChange={e => setTitle(e.target.value)}
-          autoFocus
-        />
-      </div>
+      <Controller
+        name="title"
+        control={control}
+        rules={{
+          required: "Task title is required",
+        }}
+        render={({ field, fieldState }) => (
+          <Field>
+            <FieldLabel htmlFor="title">
+              Task
+            </FieldLabel>
 
-    <div className="flex items-center gap-3">
-        <Button type="submit">Save</Button>
-        <Button variant="secondary" render={<Link href="/" />}>
-            Cancel
+            <Input
+              {...field}
+              id="title"
+              type="text"
+              placeholder="Enter task title"
+              autoFocus
+            />
+
+            <FieldError errors={[fieldState.error]} />
+          </Field>
+        )}
+      />
+
+      <Controller
+        name="description"
+        control={control}
+        render={({ field, fieldState }) => (
+          <Field>
+            <FieldLabel htmlFor="description">
+              Description
+            </FieldLabel>
+
+            <Textarea
+              {...field}
+              id="description"
+              placeholder="Enter task description"
+            />
+
+            <FieldError errors={[fieldState.error]} />
+          </Field>
+        )}
+      />
+
+      <div className="flex items-center gap-3">
+        <Button type="submit">
+          Save
         </Button>
-    </div>
+
+        <Link
+          href="/"
+          className={buttonVariants({ variant: "secondary" })}
+        >
+          Cancel
+        </Link>
+      </div>
     </form>
   )
 }
