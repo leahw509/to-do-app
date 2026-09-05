@@ -4,7 +4,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Controller, useForm } from "react-hook-form"
 
-import { useTodos } from "@/context/TodoContext"
+import { useAddTodo } from "@/hooks/use-todos"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/field"
 
 export default function AddTask() {
-  const { addTodo } = useTodos()
+  const addTodo = useAddTodo()
   const router = useRouter()
 
   const {
@@ -29,8 +29,15 @@ export default function AddTask() {
   })
 
   function onSubmit(data) {
-    addTodo(data.title.trim(), data.description.trim())
-    router.push("/")
+    addTodo.mutate(
+      {
+        title: data.title.trim(),
+        description: data.description.trim(),
+      },
+      {
+        onSuccess: () => router.push("/"),
+      }
+    )
   }
 
   return (
@@ -85,9 +92,15 @@ export default function AddTask() {
         )}
       />
 
+      {addTodo.isError && (
+        <p className="text-sm text-destructive">
+          Failed to save: {addTodo.error.message}
+        </p>
+      )}
+
       <div className="flex items-center gap-3">
-        <Button type="submit">
-          Save
+        <Button type="submit" disabled={addTodo.isPending}>
+          {addTodo.isPending ? "Saving..." : "Save"}
         </Button>
 
         <Link
