@@ -1,4 +1,4 @@
-import { TodoProvider } from "@/context/TodoContext"
+import Providers from "./providers"
 import "./globals.css"
 
 export const metadata = {
@@ -9,7 +9,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className="flex min-h-screen flex-col items-center px-6 py-12">
-        <TodoProvider>{children}</TodoProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   )

@@ -1,7 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import { useTodos } from "@/context/TodoContext"
 import { Button, buttonVariants } from "@/components/ui/button"
 import {
   Table,
@@ -11,9 +10,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { useTodos, useToggleTodo, useDeleteTodo } from "@/hooks/use-todos"
 
 export default function Home() {
-  const { todos, toggleTodo, deleteTodo } = useTodos()
+  const { data: todos, isPending, isError, error } = useTodos()
+  const toggleTodo = useToggleTodo()
+  const deleteTodo = useDeleteTodo()
 
   return (
     <section className="flex w-full max-w-lg flex-col gap-4">
@@ -38,7 +40,29 @@ export default function Home() {
         </TableHeader>
 
         <TableBody>
-          {todos.length === 0 && (
+          {isPending && (
+            <TableRow>
+              <TableCell
+                colSpan={3}
+                className="py-8 text-center text-muted-foreground"
+              >
+                Loading todos...
+              </TableCell>
+            </TableRow>
+          )}
+
+          {isError && (
+            <TableRow>
+              <TableCell
+                colSpan={3}
+                className="py-8 text-center text-destructive"
+              >
+                Failed to load todos: {error.message}
+              </TableCell>
+            </TableRow>
+          )}
+
+          {!isPending && !isError && todos.length === 0 && (
             <TableRow>
               <TableCell
                 colSpan={3}
@@ -49,50 +73,56 @@ export default function Home() {
             </TableRow>
           )}
 
-          {todos.map(todo => (
-            <TableRow key={todo.id}>
-              <TableCell>
-                <input
-                  type="checkbox"
-                  checked={todo.completed}
-                  onChange={e =>
-                    toggleTodo(todo.id, e.target.checked)
-                  }
-                  className="h-4 w-4 cursor-pointer accent-primary"
-                />
-              </TableCell>
+          {!isPending &&
+            !isError &&
+            todos.map(todo => (
+              <TableRow key={todo.id}>
+                <TableCell>
+                  <input
+                    type="checkbox"
+                    checked={todo.completed}
+                    onChange={e =>
+                      toggleTodo.mutate({
+                        id: todo.id,
+                        completed: e.target.checked,
+                      })
+                    }
+                    className="h-4 w-4 cursor-pointer accent-primary"
+                  />
+                </TableCell>
 
-              <TableCell>
-                <div
-                  className={
-                    todo.completed
-                      ? "text-muted-foreground line-through"
-                      : ""
-                  }
-                >
-                  <div className="font-medium">
-                    {todo.title}
-                  </div>
-
-                  {todo.description && (
-                    <div className="text-sm text-muted-foreground">
-                      {todo.description}
+                <TableCell>
+                  <div
+                    className={
+                      todo.completed
+                        ? "text-muted-foreground line-through"
+                        : ""
+                    }
+                  >
+                    <div className="font-medium">
+                      {todo.title}
                     </div>
-                  )}
-                </div>
-              </TableCell>
 
-              <TableCell className="text-right">
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => deleteTodo(todo.id)}
-                >
-                  Delete
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
+                    {todo.description && (
+                      <div className="text-sm text-muted-foreground">
+                        {todo.description}
+                      </div>
+                    )}
+                  </div>
+                </TableCell>
+
+                <TableCell className="text-right">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    disabled={deleteTodo.isPending}
+                    onClick={() => deleteTodo.mutate(todo.id)}
+                  >
+                    Delete
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
         </TableBody>
       </Table>
     </section>
